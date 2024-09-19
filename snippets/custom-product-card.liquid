@@ -1,0 +1,105 @@
+{%- comment -%}
+  Snippet: Custom Product Card
+  Purpose:
+  - This snippet renders a single product card, displaying information like product title, variant, price, tags, and the ability to add the product to the cart (if available).
+  - The card is designed to work with AJAX and dynamic loading, supporting flexible layouts and styles.
+
+  Passed Variables:
+  - product: The product object, containing all product details such as title, handle, and tags.
+  - variant: The first available variant object of the product.
+  - image: The image associated with the product or variant, based on availability.
+
+  Data Attributes:
+  - data-variant-id: The ID of the first available variant (used for adding to cart).
+  - data-product-id: The unique ID of the product.
+  - data-product-url: The URL of the product, including the selected variant.
+
+  Features:
+  - Displays product image, title, and variant options.
+  - Displays the product price and, if applicable, the compare-at price (with a strikethrough).
+  - Shows product tags (if available) as badges on the product card.
+  - Includes an "Add to Cart" button that changes to "Out of Stock" if the variant is unavailable.
+  - Uses the 'loading-spinner' snippet for loading states when adding products to the cart.
+  - Dynamic styling is applied through CSS variables for aspect ratio, spacing, and button hover states.
+
+  Notes:
+  - The snippet is intended for dynamic product loading in sections like "Featured Collection" and can be used with multiple layout options.
+{%- endcomment -%}
+
+<custom-product-card
+  data-variant-id="{{ variant.id }}"
+  data-product-id="{{ product.id }}"
+>
+  <a class="product-card-container" href="/products/{{ product.handle }}?variant={{ variant.id }}">
+    <!-- Product Tags -->
+    {%- if product.tags.size > 0 -%}
+      <div class="product-tags">
+        {%- for tag in product.tags -%}
+          <span class="product-tag">{{ tag }}</span>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="card-media">
+      <!-- Product Image -->
+      <img
+        src="{{ image | img_url: 'master' }}"
+        width="{{ image.width }}"
+        height="{{ image.height }}"
+        alt="{{ image.alt }}"
+        loading="lazy"
+      >
+      <div class="action-container">
+        <div class="button-container">
+          <!-- Add to Cart or Out of Stock Button -->
+          {%- if variant.available -%}
+            <button
+              type="button"
+              class="button button--small"
+              data-js-add-to-cart
+            >
+              <span>Add to Cart</span>
+              {%- render 'loading-spinner' -%}
+            </button>
+          {%- else -%}
+            <button
+              type="button"
+              class="button button--disabled button--small"
+              disabled
+            >
+              Out of Stock
+            </button>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Title and Price -->
+    <div class="card-details">
+      <div class="product-title-and-price">
+        <!-- Title -->
+        <h3 class="product-title">{{ product.title }}</h3>
+        <!-- Price -->
+        <div class="product-pricing">
+          <span class="product-price {% if variant.compare_at_price > variant.price %} sale-price {% endif %}">
+            {{ variant.price | money }}
+          </span>
+          {%- if variant.compare_at_price > variant.price -%}
+            <span class="compare-at-price">
+              <s>{{ variant.compare_at_price | money }}</s>
+            </span>
+          {%- endif -%}
+        </div>
+        <!-- Variant Title (Options) -->
+        {%- if variant.title != 'Default Title' -%}
+          <div class="variant-title">
+            {%- for option_value in variant.options -%}
+              {{ product.options[forloop.index0] }}: {{ option_value }}
+              {%- unless forloop.last -%}|{%- endunless -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </a>
+</custom-product-card>
