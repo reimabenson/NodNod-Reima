@@ -54,7 +54,7 @@
         "section_heading": "Featured Products",
         "collection": "automated-collection",
         "max_products_per_row": 4,
-        "aspect_ratio": "auto",
+        "aspect_ratio": "2\/3",
         "show_product_tag": true,
         "show_variant_title": true
       }
