@@ -1,0 +1,156 @@
+{%- comment -%}
+  Section: Custom Featured Collection
+
+  Purpose: Display a collection of products based on the selected collection handle and allow users to load more products dynamically.
+  - Displays a specified number of products per row.
+  - The section includes an option to load more products using AJAX.
+  - Renders the products using the <custom-product-card> custom element.
+  - Configurable through Shopify's theme editor.
+
+  Settings:
+  - section_heading: Custom section heading or defaults to the collection title.
+  - collection: The selected collection to display products from.
+  - max_products_per_row: The number of products to display per row.
+  - aspect_ratio: Image aspect ratio (e.g., natural, square, portrait).
+  - show_product_tag: Show product tags.
+  - show_variant_title: Show variant title if the fist available variant has variant title.
+
+  Note:
+  - This section is designed to handle AJAX-based product loading to support infinite scrolling.
+{%- endcomment -%}
+
+{%- liquid
+  assign section_settings = section.settings
+  assign featured_collection = section_settings.collection
+  assign section_heading = featured_collection.title
+  assign max_products_per_row = section_settings.max_products_per_row
+  assign show_product_tag = 'flex'
+  assign show_variant_title = 'block'
+
+  if section_settings.section_heading != blank
+    assign section_heading = section_settings.section_heading
+  endif
+
+  if section_settings.show_product_tag != true
+    assign show_product_tag = 'none'
+  endif
+
+  if section_settings.show_variant_title != true
+    assign show_variant_title = 'none'
+  endif
+-%}
+
+<section class="featured-collection-section page-width">
+  <custom-featured-collection
+    data-collection-handle="{{ featured_collection.handle }}"
+    data-max-products-per-row="{{ max_products_per_row }}"
+    data-current-index="1"
+    style="
+      --products-per-row: {{ max_products_per_row }};
+      --card-aspect-ratio: {{ section_settings.aspect_ratio }};
+      --show-product-tag: {{ show_product_tag }};
+      --show-variant-title: {{ show_variant_title }};
+    "
+  >
+    <div class="section-header">
+      <h2>{{ section_heading }}</h2>
+    </div>
+
+    <div class="products-container">
+      {%- assign products = collections[featured_collection.handle].products -%}
+
+      {%- for product in products limit: max_products_per_row -%}
+        {%- comment -%}
+          For each product, assign the first available variant and the featured image.
+          If the variant has a specific featured image, use that instead of the product's featured image.
+        {%- endcomment -%}
+        {%- liquid
+          assign variant = product.first_available_variant
+          assign image = product.featured_image
+          if variant.featured_image != null
+            assign image = variant.featured_image
+          endif
+        -%}
+
+        {%- comment -%}
+          Render the `custom-product-card` snippet with the necessary parameters: `product`, `variant`, and `image`.
+        {%- endcomment -%}
+        {%- render 'custom-product-card', variant: variant, product: product, image: image -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if products.size > max_products_per_row -%}
+      <div class="section-footer">
+        <button class="button button--secondary load-more-btn">
+            <span>Load More</span>
+            {%- render 'loading-spinner' -%}
+        </button>        
+      </div>
+    {%- endif -%}
+  </custom-featured-collection>
+</section>
+
+{% schema %}
+{
+  "name": "Custom Collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_heading",
+      "label": "Section Heading",
+      "default": "Featured Products"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "range",
+      "id": "max_products_per_row",
+      "label": "Number of Products Per Row",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        {
+          "label": "Natural",
+          "value": "auto"
+        },
+        {
+          "label": "Square",
+          "value": "1/1"
+        },
+        {
+          "label": "Portrait",
+          "value": "2/3"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_tag",
+      "label": "Show product tags",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variant_title",
+      "label": "Show variant title",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Collection",
+      "category": "Custom Sections"
+    }
+  ]
+}
+{% endschema %}
