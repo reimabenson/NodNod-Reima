@@ -49,6 +49,29 @@
         alt="{{ image.alt }}"
         loading="lazy"
       >
+      <div class="action-container">
+        <div class="button-container">
+          <!-- Add to Cart or Out of Stock Button -->
+          {%- if variant.available -%}
+            <button
+              type="button"
+              class="button button--small"
+              data-js-add-to-cart
+            >
+              <span>Add to Cart</span>
+              {%- render 'loading-spinner' -%}
+            </button>
+          {%- else -%}
+            <button
+              type="button"
+              class="button button--disabled button--small"
+              disabled
+            >
+              Out of Stock
+            </button>
+          {%- endif -%}
+        </div>
+      </div>
     </div>
 
     <!-- Product Title and Price -->
@@ -79,27 +102,4 @@
       </div>
     </div>
   </a>
-  <div class="action-container">
-    <div class="button-container">
-      <!-- Add to Cart or Out of Stock Button -->
-      {%- if variant.available -%}
-        <button
-          type="button"
-          class="button button--small"
-          data-js-add-to-cart
-        >
-          <span>Add to Cart</span>
-          {%- render 'loading-spinner' -%}
-        </button>
-      {%- else -%}
-        <button
-          type="button"
-          class="button button--disabled button--small"
-          disabled
-        >
-          Out of Stock
-        </button>
-      {%- endif -%}
-    </div>
-  </div>
 </custom-product-card>
