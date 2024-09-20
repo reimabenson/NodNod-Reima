@@ -1,0 +1,71 @@
+{%- comment -%}
+  Template: Collection Pagination Template with AJAX
+  Purpose: This template is used to load products from a collection with pagination using the `paginate` feature.
+  The `page` parameter is used to track the current page for pagination.
+
+  Query Parameters:
+  - page: The current page of products (for pagination).
+  - limit: Number of products to fetch per request.
+{%- endcomment -%}
+
+{%- layout none -%}
+
+{%- capture content_for_query_string -%}{{ content_for_header }}{%- endcapture -%}
+
+{%- comment -%}
+  Extract the full page URL and clean it up.
+{%- endcomment -%}
+{%- assign page_url_with_host = content_for_query_string
+  | split: '"pageurl":"'
+  | last
+  | split: '"'
+  | first
+  | replace: '\/', '/'
+  | replace: '%20', ' '
+  | replace: '\u0026', '&'
+-%}
+
+{%- comment -%}
+  Extract query parameters from the URL.
+{%- endcomment -%}
+{%- assign query_params = page_url_with_host | split: '?' | last -%}
+{%- assign limit_param = query_params | split: 'limit=' | last | split: '&' | first | plus: 0 -%}
+
+{%- if limit_param != 0 -%}
+  {%- if collection != blank and collection.products.size > 0 -%}
+    {%- comment -%}
+      Use the paginate feature with the page and limit parameters.
+    {%- endcomment -%}
+    {%- paginate collection.products by limit_param -%}
+      {%- for product in collection.products -%}
+        {%- comment -%}
+          Get the first available variant and use the variant's featured image if it exists.
+        {%- endcomment -%}
+        {%- assign variant = product.first_available_variant -%}
+        {%- assign image = product.featured_image -%}
+        {%- if variant.featured_image != blank -%}
+          {%- assign image = variant.featured_image -%}
+        {%- endif -%}
+
+        {%- comment -%}
+          Render the custom-product-card snippet for each product.
+        {%- endcomment -%}
+        {%- render 'custom-product-card', product: product, variant: variant, image: image -%}
+      {%- endfor -%}
+
+      {%- comment -%}
+        If there are more pages, display the "Load More" button.
+      {%- endcomment -%}
+      {%- if paginate.next.is_link -%}
+        <button class="button button--secondary load-more-btn">Load More</button>
+      {%- endif -%}
+
+      {%- if paginate.pages > 1 and paginate.current_page == paginate.pages -%}
+        <p>No more products to load.</p>
+      {%- endif -%}
+    {%- endpaginate -%}
+
+  {%- else -%}
+    <p>No products found in the selected collection.</p>
+  {%- endif -%}
+{%- endif -%}
